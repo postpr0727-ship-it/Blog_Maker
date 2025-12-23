@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naver Blog Content Optimizer</title>
+    <meta name="description" content="네이버 메인피드 노출과 검색 상위 랭킹을 위한 AI 기반 블로그 콘텐츠 생성 도구">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-pen-nib"></i>
+                </div>
+                <h1>Naver Blog Optimizer</h1>
+            </div>
+            <div class="header-actions">
+                <button class="icon-button" aria-label="Settings" id="settings-btn">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="split-layout">
+                <!-- Left Panel: Input Configuration -->
+                <section class="input-panel">
+                    <div class="panel-header">
+                        <h2>Content Setup</h2>
+                        <p>콘텐츠 생성을 위한 설정을 완료해주세요.</p>
+                    </div>
+
+                    <form id="generator-form" onsubmit="return false;">
+                        <!-- Section 1: Persona -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fa-solid fa-user-tag"></i>
+                                <h3>Persona Configuration</h3>
+                            </div>
+                            <div class="grid-2">
+                                <div class="input-group">
+                                    <label for="persona-name">이름 (필명)</label>
+                                    <input type="text" id="persona-name" placeholder="예: 김영희" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="persona-gender">성별</label>
+                                    <div class="select-wrapper">
+                                        <select id="persona-gender">
+                                            <option value="female">여성</option>
+                                            <option value="male">남성</option>
+                                            <option value="other">기타</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="input-group">
+                                    <label for="persona-age">나이대</label>
+                                    <div class="select-wrapper">
+                                        <select id="persona-age">
+                                            <option value="20s">20대</option>
+                                            <option value="30s">30대</option>
+                                            <option value="40s">40대</option>
+                                            <option value="50s+">50대 이상</option>
+                                            <option value="teen">10대</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="persona-job">직업</label>
+                                    <input type="text" id="persona-job" placeholder="예: 직장인">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="persona-mood">오늘의 기분</label>
+                                <div class="mood-selector">
+                                    <input type="radio" name="mood" id="mood-happy" value="happy" checked>
+                                    <label for="mood-happy" class="mood-chip">😊 즐거움</label>
+
+                                    <input type="radio" name="mood" id="mood-calm" value="calm">
+                                    <label for="mood-calm" class="mood-chip">🌿 차분함</label>
+
+                                    <input type="radio" name="mood" id="mood-excited" value="excited">
+                                    <label for="mood-excited" class="mood-chip">🔥 흥분됨</label>
+
+                                    <input type="radio" name="mood" id="mood-info" value="informative">
+                                    <label for="mood-info" class="mood-chip">📚 전문적</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Content Details -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fa-solid fa-layer-group"></i>
+                                <h3>Content Details</h3>
+                            </div>
+
+                            <div class="trend-link-wrapper">
+                                <a href="https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNREpxYW5RU0FtdHZHZ0pMVWlnQVAB?hl=ko&gl=KR&ceid=KR%3Ako"
+                                    target="_blank" class="trend-button">
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                    트렌드 확인하기
+                                </a>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="main-keyword">핵심 키워드 <span class="required">*</span></label>
+                                <input type="text" id="main-keyword" placeholder="예: 드라마 리뷰, 맛집 탐방" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="topic-prompt">주제 프롬프트</label>
+                                <textarea id="topic-prompt" rows="3"
+                                    placeholder="예: 감동적인 톤으로 작성해주세요, 팬심을 자극하는 내용 포함"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: References -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fa-solid fa-link"></i>
+                                <h3>References</h3>
+                            </div>
+                            <div class="input-stack">
+                                <input type="url" class="ref-link" placeholder="참고 링크 1 (URL)">
+                                <input type="url" class="ref-link" placeholder="참고 링크 2 (URL)">
+                                <input type="url" class="ref-link" placeholder="참고 링크 3 (URL)">
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Length -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fa-solid fa-ruler-horizontal"></i>
+                                <h3>Length</h3>
+                            </div>
+                            <div class="length-selector">
+                                <input type="radio" name="length" id="len-short" value="short">
+                                <label for="len-short">
+                                    <span class="len-name">짧게</span>
+                                    <span class="len-desc">1,000자 내외</span>
+                                </label>
+
+                                <input type="radio" name="length" id="len-medium" value="medium" checked>
+                                <label for="len-medium">
+                                    <span class="len-name">보통</span>
+                                    <span class="len-desc">2,000자 내외</span>
+                                </label>
+
+                                <input type="radio" name="length" id="len-long" value="long">
+                                <label for="len-long">
+                                    <span class="len-name">길게</span>
+                                    <span class="len-desc">3,000자 이상</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="action-area">
+                            <button type="submit" id="generate-btn" class="btn-primary">
+                                <span class="btn-text">콘텐츠 생성하기</span>
+                                <span class="btn-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Right Panel: Output -->
+                <section class="output-panel">
+                    <div id="empty-state" class="empty-state">
+                        <div class="illustration">
+                            <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <h3>아직 생성된 콘텐츠가 없습니다</h3>
+                        <p>왼쪽 패널에서 설정을 완료하고 생성 버튼을 눌러주세요.</p>
+                    </div>
+
+                    <div id="loading-state" class="loading-state hidden">
+                        <div class="loader"></div>
+                        <p>AI가 최적화된 콘텐츠를 작성중입니다...</p>
+                    </div>
+
+                    <div id="result-state" class="result-container hidden">
+                        <!-- Titles -->
+                        <div class="result-section">
+                            <div class="section-header">
+                                <h3>추천 제목</h3>
+                                <span class="badge">N Rank Optimized</span>
+                            </div>
+                            <div class="titles-grid" id="titles-container">
+                                <!-- Titles will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="result-section content-body-section">
+                            <div class="section-header">
+                                <h3>본문 내용</h3>
+                                <button class="btn-icon-text" id="copy-body-btn">
+                                    <i class="fa-regular fa-copy"></i> 복사
+                                </button>
+                            </div>
+                            <div class="content-preview" id="content-body">
+                                <!-- Body content will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Refine -->
+                        <div class="refine-section">
+                            <button class="refine-toggle" id="refine-toggle">
+                                <i class="fa-solid fa-sliders"></i> 수정 요청하기
+                            </button>
+                            <div class="refine-input-area hidden" id="refine-area">
+                                <textarea id="refine-prompt" rows="3"
+                                    placeholder="예: 제목을 더 감성적으로 바꿔주세요, 본문에 구체적인 예시를 추가해주세요"></textarea>
+                                <button class="btn-secondary" id="refine-btn">수정하기</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <i class="fa-solid fa-check-circle"></i>
+            <span id="toast-message">복사되었습니다!</span>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>설정 (Settings)</h3>
+                    <button class="close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="api-key-input">Gemini API Key</label>
+                        <input type="password" id="api-key-input" placeholder="AIzaSy..." autocomplete="off">
+                        <p class="helper-text">
+                            API 키는 브라우저의 로컬 스토리지에만 저장되며 서버로 전송되지 않습니다.
+                            <br>키가 없다면 <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI
+                                Studio</a>에서 발급받으세요.
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save-api-key-btn" class="btn-primary">저장하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markdown Parser (Marked) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
