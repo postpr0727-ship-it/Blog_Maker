@@ -123,10 +123,15 @@ h3 {
     font-size: 18px;
 }
 
+@media (max-width: 480px) {
+    .logo-container h1 {
+        font-size: 16px;
+    }
+}
+
 .logo-container h1 {
     font-size: 20px;
     color: var(--text-white);
-    /* Use white for hero nav */
 }
 
 .icon-button {
@@ -320,6 +325,25 @@ textarea {
 /* Custom Select */
 .select-wrapper {
     position: relative;
+}
+
+.select-wrapper::after {
+    content: '\f107';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    pointer-events: none;
+}
+
+select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px !important;
 }
 
 /* Mood Chip Selector */
@@ -588,6 +612,9 @@ textarea {
     font-size: 15px;
     font-weight: 600;
     color: var(--text-main);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    flex: 1;
 }
 
 .btn-copy {
@@ -614,9 +641,10 @@ textarea {
 
 .content-preview {
     font-size: 15px;
-    /* Naver Blog standard */
     line-height: 1.8;
     color: var(--text-main);
+    word-break: keep-all;
+    overflow-wrap: break-word;
 }
 
 .content-preview h1,
@@ -742,6 +770,105 @@ textarea {
     .output-panel {
         overflow: visible;
         height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        height: auto;
+        min-height: 380px;
+        padding-bottom: 60px;
+    }
+
+    .hero-content {
+        padding: 20px;
+    }
+
+    .top-nav {
+        margin-bottom: 40px;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 20px;
+        margin-top: -40px;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .length-selector {
+        grid-template-columns: 1fr;
+    }
+
+    #generator-form {
+        padding: 20px;
+        gap: 24px;
+    }
+
+    .result-container {
+        padding: 20px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .model-info {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+
+    .trend-link-wrapper {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .refine-section {
+        position: static;
+        padding-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    .mood-chip {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .hero-main {
+        text-align: center;
+    }
+
+    .hero-title br {
+        display: none;
     }
 }
 
