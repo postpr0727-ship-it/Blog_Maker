@@ -82,11 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!apiKey) {
-            alert('Gemini API 키가 설정되지 않았습니다. 우측 상단 톱니바퀴 아이콘을 눌러 키를 입력해주세요.');
-            settingsModal.classList.remove('hidden');
-            return;
-        }
+        // If no local key, we'll try the serverless function which may have the key preset.
+        // We'll proceed and let executePrompt handle the failure if neither exists.
 
         // UI State Update
         setLoading(true);
@@ -104,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Results
             setLoading(false);
             showResults();
+
+            // Display used model
+            if (data.usedModel) {
+                document.getElementById('used-model-name').innerText = data.usedModel;
+            }
 
         } catch (error) {
             console.error(error);
@@ -130,48 +132,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Call Gemini API (Self-Healing)
     async function callGeminiAPI(formData, retryModel = null) {
         const prompt = buildPrompt(formData);
+        return await executePrompt(prompt, retryModel);
+    }
 
-        // Use gemini-1.5-flash-latest as requested
-        let modelName = retryModel || 'gemini-1.5-flash-latest';
-        let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    // New unified prompt executor
+    async function executePrompt(prompt, retryModel = null) {
+        const modelName = retryModel || 'gemini-1.5-flash-latest';
 
-        console.log(`Attempting with model: ${modelName}`);
-
+        // 1. Try Vercel Serverless Function First (Secure)
         try {
-            const response = await fetch(url, {
+            const resp = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: 0.85,
-                        maxOutputTokens: 8192,
-                        responseMimeType: "application/json"
-                    }
-                })
+                body: JSON.stringify({ prompt, model: modelName })
             });
 
-            if (!response.ok) {
-                // If 404 (Model not found) or 400 (Bad Request - maybe model mismatch), try to recover
-                if ((response.status === 404 || response.status === 400) && !retryModel) {
-                    console.warn(`Model '${modelName}' not found or invalid. Fetching available models...`);
-                    const validModel = await fetchFirstValidModel(apiKey);
-                    if (validModel) {
-                        return callGeminiAPI(formData, validModel); // Recursive retry with valid model
-                    }
-                }
-
-                const errData = await response.json();
-                throw new Error(errData.error?.message || `API Error (${response.status})`);
+            if (resp.ok) {
+                return await resp.json();
             }
-
-            const json = await response.json();
-            const textResponse = json.candidates[0].content.parts[0].text;
-            return JSON.parse(textResponse);
-
-        } catch (error) {
-            throw error;
+            console.warn('Serverless API not found or failed, falling back.');
+        } catch (e) {
+            console.warn('Serverless API call failed:', e);
         }
+
+        // 2. Fallback: Direct Client-side Call (Requires Manual API Key)
+        if (!apiKey) {
+            throw new Error('API 키가 설정되지 않았습니다. 설정에서 키를 입력하거나 Vercel 환경변수(GEMINI_API_KEY)를 설정해주세요.');
+        }
+
+        let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.85,
+                    maxOutputTokens: 8192,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+
+        if (!response.ok) {
+            if ((response.status === 404 || response.status === 400) && !retryModel) {
+                const validModel = await fetchFirstValidModel(apiKey);
+                if (validModel) return executePrompt(prompt, validModel);
+            }
+            const errData = await response.json();
+            throw new Error(errData.error?.message || `API Error (${response.status})`);
+        }
+
+        const json = await response.json();
+        const textResponse = json.candidates[0].content.parts[0].text;
+        return { ...JSON.parse(textResponse), usedModel: modelName };
     }
 
     // Helper: Find first valid generateContent model
@@ -321,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
     refineBtn.addEventListener('click', async () => {
         const prompt = document.getElementById('refine-prompt').value;
         if (!prompt) return;
-        if (!apiKey) return alert('API 키가 없습니다.');
 
         const originalBtnText = refineBtn.innerText;
         refineBtn.innerText = '수정 중...';
@@ -329,8 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const currentBody = contentBody.dataset.fullText;
-
-            // Refine API Call
             const refinePrompt = `
                 기존 블로그 글을 사용자의 요청에 맞춰 수정하세요.
                 
@@ -350,59 +361,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 JSON형식으로만 응답하세요.
             `;
 
-            // Reuse logic roughly, or call main function recursively if structured better
-            // But here manual fetch for simplicity within listener scope
-
-            // Use Self-Healing Logic manually or replicate? 
-            // Better to make a small helper function for API call to reuse in both places.
-            // For now, let's just use the main callGeminiAPI with a dummy formData wrapper or direct fetch.
-
-            // Let's use direct robust fetch similar to main function
-            // Default model
-            let modelName = 'gemini-1.5-flash-latest';
-            let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: refinePrompt }] }],
-                    generationConfig: { responseMimeType: "application/json" }
-                })
-            });
-
-            if (!response.ok) {
-                // Simple Fallback logic for refine too
-                if (response.status === 404 || response.status === 400) {
-                    const validModel = await fetchFirstValidModel(apiKey);
-                    if (validModel) {
-                        const retryUrl = `https://generativelanguage.googleapis.com/v1beta/models/${validModel}:generateContent?key=${apiKey}`;
-                        const retryResp = await fetch(retryUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: refinePrompt }] }],
-                                generationConfig: { responseMimeType: "application/json" }
-                            })
-                        });
-                        if (retryResp.ok) {
-                            const retryJson = await retryResp.json();
-                            const refinedBody = JSON.parse(retryJson.candidates[0].content.parts[0].text).body;
-                            updateRefineResult(refinedBody);
-                            return;
-                        }
-                    }
-                }
-                throw new Error("Refine API Failed");
+            const data = await executePrompt(refinePrompt);
+            if (data.body) {
+                updateRefineResult(data.body);
             }
 
-            const json = await response.json();
-            const refinedBody = JSON.parse(json.candidates[0].content.parts[0].text).body;
-            updateRefineResult(refinedBody);
+            if (data.usedModel) {
+                document.getElementById('used-model-name').innerText = data.usedModel;
+            }
 
         } catch (error) {
             console.error(error);
-            alert('수정 중 오류가 발생했습니다.');
+            alert('수정 중 오류가 발생했습니다: ' + error.message);
         } finally {
             refineBtn.innerText = originalBtnText;
             refineBtn.disabled = false;

@@ -461,13 +461,31 @@ textarea {
     color: var(--text-main);
 }
 
-.badge {
-    background: var(--primary);
-    color: white;
-    padding: 4px 8px;
+.model-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 2px 8px;
     border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: auto;
+    margin-left: 12px;
+}
+
+.model-info i {
+    color: var(--primary-color);
+    font-size: 0.7rem;
+}
+
+.badge {
+    padding: 4px 8px;
+    background: #e7f9ed;
+    color: #1aae9f;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 /* Titles Grid */
