@@ -64,16 +64,45 @@ h3 {
     margin: 0 auto;
 }
 
-/* Header */
-.main-header {
-    height: 64px;
+/* Hero Section */
+.hero-section {
+    position: relative;
+    height: 480px;
+    background-image: url('assets/hero-bg.png');
+    background-size: cover;
+    background-position: center 30%;
+    color: white;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(15, 17, 21, 0.9) 0%, rgba(15, 17, 21, 0.4) 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 24px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.top-nav {
+    display: flex;
     justify-content: space-between;
-    padding: 0 24px;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 60px;
 }
 
 .logo-container {
@@ -96,37 +125,76 @@ h3 {
 
 .logo-container h1 {
     font-size: 20px;
-    color: var(--text-main);
+    color: var(--text-white);
+    /* Use white for hero nav */
 }
 
 .icon-button {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    color: var(--text-sub);
+    color: white;
     cursor: pointer;
     transition: all 0.2s;
+    backdrop-filter: blur(4px);
 }
 
 .icon-button:hover {
-    background: var(--bg-input);
-    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.2);
 }
 
-/* Main Content */
+.hero-main {
+    max-width: 800px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.hero-title .highlight {
+    color: var(--primary);
+    position: relative;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-sub);
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+/* Main Content Adjustments */
 .main-content {
     flex: 1;
     overflow: hidden;
-    padding: 24px;
+    padding: 40px;
+    margin-top: -80px;
+    /* Pull content up over hero slightly */
+    position: relative;
+    z-index: 10;
+}
+
+/* Scroll adjustments for app-like fee */
+body {
+    overflow-y: auto;
+    height: auto;
+}
+
+.app-container {
+    height: auto;
 }
 
 .split-layout {
     display: grid;
     grid-template-columns: 420px 1fr;
-    gap: 24px;
-    height: 100%;
+    gap: 32px;
+    min-height: 800px;
 }
 
 /* Panels */
