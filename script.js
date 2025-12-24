@@ -157,16 +157,17 @@ document.addEventListener('DOMContentLoaded', () => {
             1. 제목: 네이버 검색(SEO)에 유리하고 클릭을 유도하는 제목 3개를 제안하세요. 제목에 핵심 키워드가 반드시 포함되어야 합니다. 단, 페르소나의 이름은 제목에 절대 포함하지 마세요.
             2. 본문:
                - 서론-본론-결론 구조를 갖추세요.
-               - 반드시 **소제목(###)**을 사용하여 문단을 구분하고 글의 가독성을 높이세요.
+               - 반드시 소제목을 작성하고, 각 소제목은 <h3>소제목 내용</h3> 형식으로 감싸서 구분하세요.
+               - 강조가 필요한 부분은 <b>강조내용</b> 형식을 사용하세요.
+               - 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요. 모든 스타일링은 HTML 태그(<h3>, <b>)만 사용해야 합니다.
                - 페르소나의 말투(구어체, 이모지 사용 등)를 완벽하게 반영하세요. ${data.mood === 'happy' ? '이모지를 적극 사용하여 친근하게.' : ''}
-               - 강조가 필요한 부분은 **굵게** 표시하거나 줄바꿈을 적절히 사용하세요.
                - 핵심 키워드는 제목에만 필수적으로 포함시키고, 본문에서는 강제로 반복하지 말고 문맥에 따라 자연스럽게 녹여내세요.
                - 문장은 호흡이 짧고 읽기 편하게 작성하세요.
             
             [응답 포맷 (JSON)]
             {
                 "titles": ["제목1", "제목2", "제목3"],
-                "body": "### 소제목1\\n안녕! ...\\n\\n### 소제목2\\n..."
+                "body": "<h3>소제목1</h3>\\n안녕! <b>중요한 내용</b>입니다...\\n\\n<h3>소제목2</h3>..."
             }
         `;
     }
@@ -191,8 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Body
         if (data.body) {
+            // Using innerHTML directly for HTML tags, or marked if we want to support both.
+            // Since we instructed to use HTML, we'll use marked as it handles sanitization/formatting too.
             contentBody.innerHTML = marked.parse(data.body);
-            contentBody.dataset.fullText = data.body;
+            // Store the clean text (without HTML tags or markdown artifacts) for copying
+            contentBody.dataset.fullText = contentBody.innerText.trim();
         }
     }
 
@@ -254,7 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentBody = contentBody.dataset.fullText;
             const refinePrompt = `
                 기존 블로그 글을 사용자의 요청에 맞춰 수정하세요.
-                반드시 **소제목(###)**을 사용하여 문단을 구성하고 가독성을 좋게 만드세요.
+                반드시 소제목(<h3>태그)을 사용하여 문단을 구성하고 가독성을 좋게 만드세요.
+                강조는 <b>태그를 사용하세요.
+                절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요.
                 
                 [사용자 요청]
                 ${prompt}
@@ -264,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 [응답 포맷 (JSON)]
                 {
-                    "body": "수정된 전체 본문 (### 소제목 포함)"
+                    "body": "수정된 전체 본문 (<h3>, <b> 태그 포함)"
                 }
                 
                 JSON형식으로만 응답하세요.
@@ -290,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateRefineResult(newBody) {
         contentBody.innerHTML = marked.parse(newBody);
-        contentBody.dataset.fullText = newBody;
+        contentBody.dataset.fullText = contentBody.innerText.trim();
         document.getElementById('refine-prompt').value = '';
         refineArea.classList.add('hidden');
     }
