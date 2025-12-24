@@ -10,8 +10,7 @@ export default async function handler(req, res) {
     }
 
     const { prompt, model } = req.body;
-    const primaryModel = model || 'gemini-1.5-flash';
-    const fallbackModel = 'gemini-pro';
+    let targetModel = model || 'gemini-1.5-flash';
 
     async function attemptGenerate(modelName) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -32,16 +31,51 @@ export default async function handler(req, res) {
         return { ok: response.ok, status: response.status, data, modelUsed: modelName };
     }
 
-    try {
-        let result = await attemptGenerate(primaryModel);
+    async function getAvailableModel() {
+        try {
+            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+            const resp = await fetch(listUrl);
+            const data = await resp.json();
+            if (data.models) {
+                // Prioritize flash models, then pro, then any gemini model
+                const preferred = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
+                const available = data.models
+                    .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+                    .map(m => m.name.replace('models/', ''));
 
-        // Fallback logic if the primary model is not found or supported
+                console.log('Available models for this key:', available);
+
+                for (const p of preferred) {
+                    if (available.includes(p)) return p;
+                }
+                return available.find(m => m.includes('gemini')) || available[0];
+            }
+        } catch (e) {
+            console.error('Failed to list models:', e);
+        }
+        return null;
+    }
+
+    try {
+        let result = await attemptGenerate(targetModel);
+
+        // Fallback logic: if target model is not found, try to list and find a working one
         if (!result.ok && (result.status === 404 || result.status === 400)) {
-            console.warn(`Primary model ${primaryModel} failed. Attempting fallback with ${fallbackModel}.`);
-            result = await attemptGenerate(fallbackModel);
+            console.warn(`Initial model ${targetModel} failed. Fetching available models...`);
+            const discoveredModel = await getAvailableModel();
+
+            if (discoveredModel && discoveredModel !== targetModel) {
+                console.log(`Retrying with discovered model: ${discoveredModel}`);
+                result = await attemptGenerate(discoveredModel);
+            } else if (targetModel !== 'gemini-pro') {
+                // Secondary fallback if listing fails but we haven't tried gemini-pro yet
+                console.log(`Falling back to gemini-pro as a last resort.`);
+                result = await attemptGenerate('gemini-pro');
+            }
         }
 
         if (!result.ok) {
+            // If still failed, return the original error data
             return res.status(result.status).json(result.data);
         }
 
