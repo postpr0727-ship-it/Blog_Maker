@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // New unified prompt executor
     // Unified prompt executor via Serverless Function
     async function executePrompt(prompt, retryModel = null) {
-        const modelName = retryModel || 'gemini-1.5-flash-latest';
+        const modelName = retryModel || 'gemini-1.5-flash';
 
         try {
             const resp = await fetch('/api/generate', {

@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     }
 
     const { prompt, model } = req.body;
-    const modelName = model || 'gemini-1.5-flash-latest';
+    const modelName = model || 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
     try {
@@ -32,8 +32,11 @@ export default async function handler(req, res) {
             return res.status(response.status).json(data);
         }
 
-        // Include the model name in the response so we can record it
-        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+        const content = data.candidates[0].content.parts[0].text;
+        // Clean up markdown if AI accidentally included it
+        const cleanContent = content.replace(/```json\n?/, '').replace(/```$/, '').trim();
+        const result = JSON.parse(cleanContent);
+
         res.status(200).json({ ...result, usedModel: modelName });
 
     } catch (error) {
