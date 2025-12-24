@@ -157,15 +157,16 @@ document.addEventListener('DOMContentLoaded', () => {
             1. 제목: 네이버 검색(SEO)에 유리하고 클릭을 유도하는 제목 3개를 제안하세요. 제목에 핵심 키워드가 반드시 포함되어야 합니다. 단, 페르소나의 이름은 제목에 절대 포함하지 마세요.
             2. 본문:
                - 서론-본론-결론 구조를 갖추세요.
+               - 반드시 **소제목(###)**을 사용하여 문단을 구분하고 글의 가독성을 높이세요.
                - 페르소나의 말투(구어체, 이모지 사용 등)를 완벽하게 반영하세요. ${data.mood === 'happy' ? '이모지를 적극 사용하여 친근하게.' : ''}
-               - AI가 작성한 티가 나지 않도록 마크다운 기호(##, **)를 절대 사용하지 마세요. 소제목이나 강조가 필요한 부분은 줄바꿈으로 표현하세요.
+               - 강조가 필요한 부분은 **굵게** 표시하거나 줄바꿈을 적절히 사용하세요.
                - 핵심 키워드는 제목에만 필수적으로 포함시키고, 본문에서는 강제로 반복하지 말고 문맥에 따라 자연스럽게 녹여내세요.
                - 문장은 호흡이 짧고 읽기 편하게 작성하세요.
             
             [응답 포맷 (JSON)]
             {
                 "titles": ["제목1", "제목2", "제목3"],
-                "body": "안녕하세요! ... (마크다운 기호 없는 순수 줄글)"
+                "body": "### 소제목1\\n안녕! ...\\n\\n### 소제목2\\n..."
             }
         `;
     }
@@ -245,14 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const prompt = document.getElementById('refine-prompt').value;
         if (!prompt) return;
 
-        const originalBtnText = refineBtn.innerText;
-        refineBtn.innerText = '수정 중...';
+        const originalBtnHTML = refineBtn.innerHTML;
+        refineBtn.innerHTML = '<span class="loader" style="width: 16px; height: 16px; border-width: 2px; margin-right: 8px;"></span> 수정 중...';
         refineBtn.disabled = true;
 
         try {
             const currentBody = contentBody.dataset.fullText;
             const refinePrompt = `
                 기존 블로그 글을 사용자의 요청에 맞춰 수정하세요.
+                반드시 **소제목(###)**을 사용하여 문단을 구성하고 가독성을 좋게 만드세요.
                 
                 [사용자 요청]
                 ${prompt}
@@ -260,11 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 [기존 글]
                 ${currentBody}
 
-                - 마크다운 기호(##, **)를 절대 포함하지 마세요.
-
                 [응답 포맷 (JSON)]
                 {
-                    "body": "수정된 전체 본문 (마크다운 기호 제외)"
+                    "body": "수정된 전체 본문 (### 소제목 포함)"
                 }
                 
                 JSON형식으로만 응답하세요.
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert('수정 중 오류가 발생했습니다: ' + error.message);
         } finally {
-            refineBtn.innerText = originalBtnText;
+            refineBtn.innerHTML = originalBtnHTML;
             refineBtn.disabled = false;
         }
     });

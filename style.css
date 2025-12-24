@@ -689,8 +689,17 @@ select {
 .content-preview h1,
 .content-preview h2,
 .content-preview h3 {
-    margin-top: 24px;
-    margin-bottom: 12px;
+    margin-top: 32px;
+    margin-bottom: 16px;
+    color: var(--text-white);
+    font-size: 1.35rem;
+    /* Clearly larger than 15px body text */
+    font-weight: 700;
+    line-height: 1.4;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 8px;
+    display: inline-block;
+    /* underlining only the text length */
 }
 
 .content-preview p {
@@ -749,13 +758,28 @@ select {
 
 .btn-secondary {
     align-self: flex-end;
-    padding: 10px 20px;
-    background: var(--text-main);
-    color: white;
-    border: none;
+    padding: 10px 24px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 /* Utilities */
