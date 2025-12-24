@@ -109,17 +109,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ prompt, model: modelName })
             });
 
-            const data = await resp.json();
+            let data;
+            const contentType = resp.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await resp.json();
+            } else {
+                const text = await resp.text();
+                throw new Error(`서버 응답 오류 (${resp.status}): ${text.substring(0, 100)}`);
+            }
 
             if (!resp.ok) {
-                // If it's a 404/400 and we haven't retried yet, the model might be unavailable.
-                // However, since it's server-side, we'll let the user know it's a configuration issue.
-                throw new Error(data.error || `서버 오류 (${resp.status})`);
+                const errorMsg = typeof data.error === 'object' ? JSON.stringify(data.error) : data.error;
+                throw new Error(errorMsg || `서버 오류 (${resp.status})`);
             }
 
             return data;
         } catch (e) {
             console.error('API call failed:', e);
+            if (e.message.includes('404')) {
+                throw new Error('API 경로(/api/generate)를 찾을 수 없습니다. Vercel에 배포 중이거나 로컬에서 "vercel dev"를 사용 중인지 확인해주세요.');
+            }
             throw e;
         }
     }
