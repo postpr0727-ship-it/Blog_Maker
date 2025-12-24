@@ -53,11 +53,7 @@
                         </div>
                         <h1>Naver Blog Optimizer</h1>
                     </div>
-                    <div class="header-actions">
-                        <button class="icon-button" aria-label="Settings" id="settings-btn">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
-                    </div>
+
                 </nav>
                 <div class="hero-main">
                     <h2 class="hero-title">상위 1%를 위한 <br><span class="highlight">네이버 블로그</span> 콘텐츠 최적화</h2>
@@ -275,30 +271,7 @@
             <span id="toast-message">복사되었습니다!</span>
         </div>
 
-        <!-- Settings Modal -->
-        <div id="settings-modal" class="modal-overlay hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>설정 (Settings)</h3>
-                    <button class="close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group">
-                        <label for="api-key-input">Gemini API Key</label>
-                        <input type="password" id="api-key-input" placeholder="AIzaSy..." autocomplete="off">
-                        <p class="helper-text">
-                            API 키는 브라우저의 로컬 스토리지에 저장되거나 시스템 기본값을 사용합니다.
-                            <br>Vercel 배포 시 환경 변수(GEMINI_API_KEY)를 설정하면 키 입력 없이 바로 사용 가능합니다.
-                            <br>키가 없다면 <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI
-                                Studio</a>에서 발급받으세요.
-                        </p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="save-api-key-btn" class="btn-primary">저장하기</button>
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <!-- Markdown Parser (Marked) -->

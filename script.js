@@ -24,50 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const lengthParams = document.getElementsByName('length');
     const refLinks = document.querySelectorAll('.ref-link');
 
-    // Settings Modal Elements
-    const settingsBtn = document.getElementById('settings-btn');
-    const settingsModal = document.getElementById('settings-modal');
-    const closeModalBtn = document.querySelector('.close-modal-btn');
-    const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-    const apiKeyInput = document.getElementById('api-key-input');
+
 
     // State
     let isGenerating = false;
-    let apiKey = localStorage.getItem('gemini_api_key') || '';
 
-    // Initialize
-    if (apiKey) {
-        apiKeyInput.value = apiKey;
-    }
 
-    // --- Settings / API Key Management ---
-    settingsBtn.addEventListener('click', () => {
-        settingsModal.classList.remove('hidden');
-        apiKeyInput.focus();
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-        settingsModal.classList.add('hidden');
-    });
-
-    saveApiKeyBtn.addEventListener('click', () => {
-        const key = apiKeyInput.value.trim();
-        if (key) {
-            apiKey = key;
-            localStorage.setItem('gemini_api_key', apiKey);
-            alert('API 키가 저장되었습니다.');
-            settingsModal.classList.add('hidden');
-        } else {
-            alert('API 키를 입력해주세요.');
-        }
-    });
-
-    // Close modal on outside click
-    settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal) {
-            settingsModal.classList.add('hidden');
-        }
-    });
 
     // --- Core Functions ---
 
@@ -136,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // New unified prompt executor
+    // Unified prompt executor via Serverless Function
     async function executePrompt(prompt, retryModel = null) {
         const modelName = retryModel || 'gemini-1.5-flash-latest';
 
-        // 1. Try Vercel Serverless Function First (Secure)
         try {
             const resp = await fetch('/api/generate', {
                 method: 'POST',
@@ -147,82 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ prompt, model: modelName })
             });
 
-            if (resp.ok) {
-                return await resp.json();
-            }
-            console.warn('Serverless API not found or failed, falling back.');
-        } catch (e) {
-            console.warn('Serverless API call failed:', e);
-        }
-
-        // 2. Fallback: Direct Client-side Call (Requires Manual API Key)
-        if (!apiKey) {
-            throw new Error('API 키가 설정되지 않았습니다. 설정에서 키를 입력하거나 Vercel 환경변수(GEMINI_API_KEY)를 설정해주세요.');
-        }
-
-        let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.85,
-                    maxOutputTokens: 8192,
-                    responseMimeType: "application/json"
-                }
-            })
-        });
-
-        if (!response.ok) {
-            if ((response.status === 404 || response.status === 400) && !retryModel) {
-                const validModel = await fetchFirstValidModel(apiKey);
-                if (validModel) return executePrompt(prompt, validModel);
-            }
-            const errData = await response.json();
-            throw new Error(errData.error?.message || `API Error (${response.status})`);
-        }
-
-        const json = await response.json();
-        const textResponse = json.candidates[0].content.parts[0].text;
-        return { ...JSON.parse(textResponse), usedModel: modelName };
-    }
-
-    // Helper: Find first valid generateContent model
-    async function fetchFirstValidModel(key) {
-        try {
-            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
-            const resp = await fetch(listUrl);
             const data = await resp.json();
 
-            if (data.models) {
-                // Prioritize 1.5-flash, then 1.5-pro, then pro
-                const preferred = [
-                    'gemini-1.5-flash-latest',
-                    'gemini-1.5-flash',
-                    'gemini-1.5-flash-001',
-                    'gemini-1.5-pro-latest',
-                    'gemini-1.5-pro',
-                    'gemini-pro'
-                ];
-
-                const availableModels = data.models
-                    .filter(m => m.supportedGenerationMethods.includes('generateContent'))
-                    .map(m => m.name.replace('models/', ''));
-
-                console.log('Available Models:', availableModels);
-
-                for (const p of preferred) {
-                    if (availableModels.includes(p)) return p;
-                }
-
-                const anyGemini = availableModels.find(m => m.includes('gemini'));
-                return anyGemini || availableModels[0];
+            if (!resp.ok) {
+                // If it's a 404/400 and we haven't retried yet, the model might be unavailable.
+                // However, since it's server-side, we'll let the user know it's a configuration issue.
+                throw new Error(data.error || `서버 오류 (${resp.status})`);
             }
+
+            return data;
         } catch (e) {
-            console.error('Failed to list models:', e);
+            console.error('API call failed:', e);
+            throw e;
         }
-        return null; // Let the original error throw if recovery fails
     }
 
     // 4. Prompt Builder
