@@ -113,6 +113,20 @@ h3 {
     /* Space-between handles the gap */
 }
 
+.logo-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.logo-link:hover {
+    transform: scale(1.02);
+}
+
+.logo-link:active {
+    transform: scale(0.98);
+}
+
 .logo-container {
     display: flex;
     align-items: center;
@@ -801,11 +815,11 @@ select {
     align-items: center;
     gap: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    animation: fadeInUp 0.3s;
+    animation: fadeInUpToast 0.3s;
     z-index: 1000;
 }
 
-@keyframes fadeInUp {
+@keyframes fadeInUpToast {
     from {
         opacity: 0;
         transform: translate(-50%, 20px);
