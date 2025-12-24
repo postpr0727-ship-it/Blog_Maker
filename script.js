@@ -126,8 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return data;
         } catch (e) {
             console.error('API call failed:', e);
-            if (e.message.includes('404')) {
-                throw new Error('API 경로(/api/generate)를 찾을 수 없습니다. Vercel에 배포 중이거나 로컬에서 "vercel dev"를 사용 중인지 확인해주세요.');
+            // Only show 'path not found' if it's a real network/server 404 on the API endpoint itself
+            if (e.message.includes('서버 응답 오류 (404)')) {
+                throw new Error('API 경로(/api/generate)를 찾을 수 없습니다. Vercel 배포 상태를 확인해주세요.');
             }
             throw e;
         }

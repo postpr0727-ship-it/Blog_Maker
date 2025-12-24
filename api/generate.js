@@ -10,10 +10,11 @@ export default async function handler(req, res) {
     }
 
     const { prompt, model } = req.body;
-    const modelName = model || 'gemini-1.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const primaryModel = model || 'gemini-1.5-flash';
+    const fallbackModel = 'gemini-pro';
 
-    try {
+    async function attemptGenerate(modelName) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -28,16 +29,27 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-        if (!response.ok) {
-            return res.status(response.status).json(data);
+        return { ok: response.ok, status: response.status, data, modelUsed: modelName };
+    }
+
+    try {
+        let result = await attemptGenerate(primaryModel);
+
+        // Fallback logic if the primary model is not found or supported
+        if (!result.ok && (result.status === 404 || result.status === 400)) {
+            console.warn(`Primary model ${primaryModel} failed. Attempting fallback with ${fallbackModel}.`);
+            result = await attemptGenerate(fallbackModel);
         }
 
-        const content = data.candidates[0].content.parts[0].text;
-        // Clean up markdown if AI accidentally included it
-        const cleanContent = content.replace(/```json\n?/, '').replace(/```$/, '').trim();
-        const result = JSON.parse(cleanContent);
+        if (!result.ok) {
+            return res.status(result.status).json(result.data);
+        }
 
-        res.status(200).json({ ...result, usedModel: modelName });
+        const content = result.data.candidates[0].content.parts[0].text;
+        const cleanContent = content.replace(/```json\n?/, '').replace(/```$/, '').trim();
+        const jsonResult = JSON.parse(cleanContent);
+
+        res.status(200).json({ ...jsonResult, usedModel: result.modelUsed });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
