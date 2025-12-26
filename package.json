@@ -1,0 +1,9 @@
+{
+  "name": "naver-blog-content-optimizer",
+  "version": "1.0.0",
+  "description": "Naver Blog Content Optimizer using Gemini API",
+  "main": "api/generate.js",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12"
+  }
+}
