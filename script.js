@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             job: personaJobInput.value.trim() || '일반인',
             mood: document.querySelector('input[name="mood"]:checked').value, // happy, calm, excited, informative
             length: document.querySelector('input[name="length"]:checked').value,
+            writingStyle: document.querySelector('input[name="writing-style"]:checked').value,
             prompt: topicPromptInput.value.trim(),
             links: Array.from(refLinks).map(input => input.value.trim()).filter(url => url)
         };
@@ -150,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             [콘텐츠 설정]
             - 핵심 키워드: ${data.keyword}
             - 추가 요청사항: ${data.prompt}
+            - 어체(말투): ${data.writingStyle === 'conversational' ? '구어체 (친근한 대화형식, ~해요, ~했나요? 등)' : '문어체 (정중한 문서형식, ~입니다, ~하십시오 등)'}
             - 길이: ${data.length} (short: 공백제외 1000자 내외, medium: 2000자 내외, long: 3000자 이상)
             - 참고 링크: ${data.links.join(', ')}
 
@@ -164,10 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
                - 반드시 소제목을 작성하고, 각 소제목은 <h3>소제목 내용</h3> 형식으로 감싸서 구분하세요.
                - 강조가 필요한 부분은 <b>강조내용</b> 형식을 사용하세요.
                - 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요. 모든 스타일링은 HTML 태그(<h3>, <b>)만 사용해야 합니다.
-               - 페르소나의 말투(구어체, 이모지 사용 등)를 반영하되, 이모지는 가독성을 해치지 않도록 적절히 절제하여 사용하세요 (문단당 1~2개 수준). ${data.mood === 'happy' ? '이모지를 조금 더 섞어 밝은 분위기를 내주되 남발하지 마세요.' : ''}
+               - 페르소나의 말투(${data.writingStyle === 'conversational' ? '구어체' : '문어체'}, 이모지 사용 등)를 반영하되, 이모지는 가독성을 해치지 않도록 적절히 절제하여 사용하세요 (문단당 1~2개 수준). ${data.mood === 'happy' ? '이모지를 조금 더 섞어 밝은 분위기를 내주되 남발하지 마세요.' : ''}
                - 핵심 키워드는 제목에만 필수적으로 포함시키고, 본문에서는 강제로 반복하지 말고 문맥에 따라 자연스럽게 녹여내세요.
                - 문장은 호흡이 짧고 읽기 편하게 작성하세요.
                - **어휘 다양성**: 동일하거나 유사한 어휘 및 종결 어미(예: '~가 기대된다', '~인 것 같다' 등)를 반복적으로 사용하지 마세요. 다채로운 표현을 사용하여 글의 완성도를 높이고 자연스럽게 작성하세요.
+               - **어체 유지**: 선택된 어체(${data.writingStyle === 'conversational' ? '구어체' : '문어체'})를 글 전체에서 일관되게 유지하세요.
             
             [응답 포맷 (JSON)]
             {
@@ -269,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 강조는 <b>태그를 사용하세요.
                 이모지는 문단당 1~2개 정도로 절제하여 사용하세요.
                 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요.
+                **어체 유지**: 사용자가 선택한 어체(${document.querySelector('input[name="writing-style"]:checked').value === 'conversational' ? '구어체' : '문어체'})를 일관되게 유지하세요.
                 **어휘 다양성**: '~가 기대된다'와 같은 특정 표현이나 어휘를 반복적으로 사용하지 말고, 다채롭고 자연스러운 문장으로 수정하세요.
                 
                 [사용자 요청]
