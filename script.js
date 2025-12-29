@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('✅ DOM Content Loaded');
+
+    // Check if DOMPurify is loaded
+    if (typeof DOMPurify === 'undefined') {
+        console.error('❌ DOMPurify is not loaded!');
+        alert('보안 라이브러리를 로드하는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        return;
+    }
+    console.log('✅ DOMPurify loaded');
+
     // Elements
     const form = document.getElementById('generator-form');
     const generateBtn = document.getElementById('generate-btn');
@@ -12,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const refineArea = document.getElementById('refine-area');
     const toast = document.getElementById('toast');
     const refineBtn = document.getElementById('refine-btn');
+
+    // Verify critical elements
+    if (!generateBtn) {
+        console.error('❌ Generate button not found!');
+        return;
+    }
+    console.log('✅ All elements found');
 
     // Inputs
     const mainKeywordInput = document.getElementById('main-keyword');
@@ -45,19 +62,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Generate Handler
     generateBtn.addEventListener('click', async (e) => {
+        console.log('🖱️ Generate button clicked');
         e.preventDefault();
 
         if (!mainKeywordInput.value.trim()) {
+            console.log('⚠️ No keyword entered');
             alert('핵심 키워드를 입력해주세요.');
             mainKeywordInput.focus();
             return;
         }
 
+        console.log('📝 Starting content generation...');
         setLoading(true);
 
         try {
             const formData = getFormData();
+            console.log('📋 Form data:', formData);
+
             const data = await callGeminiAPI(formData);
+            console.log('✅ API response received:', data);
+
             renderResults(data);
             setLoading(false);
             showResults();
@@ -66,11 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('used-model-name').innerText = data.usedModel;
             }
         } catch (error) {
-            console.error(error);
+            console.error('❌ Generation error:', error);
             setLoading(false);
             alert(`오류가 발생했습니다: ${error.message}`);
         }
     });
+    console.log('✅ Event listener registered');
 
     // 2. Form Data Gatherer
     function getFormData() {
