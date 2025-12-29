@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const systemUpdateElement = document.querySelector('.system-update-notice span');
         if (systemUpdateElement) {
-            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - 순수 텍스트 전용 출력으로 변경 (HTML/마크다운 제거)`;
+            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - JSON 파싱 에러 수정 (이스케이프 처리 강화)`;
         }
     }
 
@@ -173,6 +173,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             [응답 포맷 (JSON)]
             **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
+            **JSON 형식 주의사항**:
+            - body 필드의 모든 줄바꿈은 반드시 \\n (백슬래시 n) 형태로 이스케이프해야 합니다
+            - 실제 줄바꿈을 사용하지 말고 문자열 내에서 \\n을 사용하세요
+            - 따옴표(")가 내용에 포함되면 반드시 \\" 형태로 이스케이프하세요
+            - body는 한 줄의 긴 문자열이어야 하며, 실제 줄바꿈이 포함되어서는 안 됩니다
+
             {
                 "titles": ["내용에 기반한 제목1", "내용에 기반한 제목2", "내용에 기반한 제목3"],
                 "body": "소제목1\\n\\n참고 자료의 핵심 내용...\\n\\n소제목2\\n\\n계속 작성...",
@@ -382,6 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 [응답 포맷 (JSON)]
                 **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
+                **JSON 형식 주의사항**:
+                - body 필드의 모든 줄바꿈은 반드시 \\n (백슬래시 n) 형태로 이스케이프해야 합니다
+                - 실제 줄바꿈을 사용하지 말고 문자열 내에서 \\n을 사용하세요
+                - 따옴표(")가 내용에 포함되면 반드시 \\" 형태로 이스케이프하세요
+                - body는 한 줄의 긴 문자열이어야 하며, 실제 줄바꿈이 포함되어서는 안 됩니다
+
                 {
                     "body": "수정된 전체 본문 (순수 텍스트만, \\n\\n으로 줄바꿈 처리)",
                     "verification": [
