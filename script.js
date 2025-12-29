@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const systemUpdateElement = document.querySelector('.system-update-notice span');
         if (systemUpdateElement) {
-            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - 페르소나 작성 규칙 개선 (독자 호칭 제거)`;
+            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - 순수 텍스트 전용 출력으로 변경 (HTML/마크다운 제거)`;
         }
     }
 
@@ -158,13 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
             2. **일반 지식 배제**: 당신이 원래 알고 있던 지식이나 학습된 데이터를 사용하지 마세요. 오직 해당 텍스트에 명시된 사실, 수치, 내용만 사용해야 합니다.
             3. **추측 금지**: 텍스트에 없는 정보를 지어내거나 추측하여 보충하지 마세요. 없는 내용은 언급하지 마세요.
             4. **출처 확인 불가 처리**: 만약 참고 자료 내용이 부족하거나 링크를 읽을 수 없다면, "제공된 참고 자료에서 관련 정보를 찾을 수 없습니다"라고만 답변하세요.
-            5. **제목**: 네이버 검색(SEO)에 유리하고 클릭을 유도하는 제목 3개를 제안하세요. 제목에 핵심 키워드가 반드시 포함되어야 합니다. 단, 페르소나의 이름은 제목에 절대 포함하지 마세요.
+            5. **제목**: 네이버 검색(SEO)에 유리하고 클릭을 유도하는 제목 3개를 제안하세요. 제목에 핵심 키워드가 반드시 포함되어야 합니다. 단, 페르소나의 이름은 제목에 절대 포함하지 마세요. **중요: 제목은 순수 텍스트만 사용하고 HTML 태그(<b>, <h3> 등)나 마크다운 기호를 절대 사용하지 마세요.**
             6. **본문**:
                - 서론-본론-결론 구조를 갖추세요.
-               - 반드시 소제목을 작성하고, 각 소제목은 <h3>소제목 내용</h3> 형식으로 감싸서 구분하세요.
-               - 강조가 필요한 부분은 <b>강조내용</b> 형식을 사용하세요.
-               - 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요. 모든 스타일링은 HTML 태그(<h3>, <b>)만 사용해야 합니다.
-               - **줄바꿈 처리**: 문단 구분이 필요한 곳에는 \\n\\n (이중 줄바꿈)을, 단순 줄바꿈이 필요한 곳에는 \\n을 사용하세요.
+               - 반드시 소제목을 작성하여 문단을 구분하세요. 소제목은 순수 텍스트로만 작성하세요.
+               - **중요: HTML 태그(<h3>, <b> 등)나 마크다운 기호(**, ##, ### 등)를 절대 사용하지 마세요. 모든 내용은 순수 텍스트로만 작성해야 합니다.**
+               - **줄바꿈 처리**: 소제목과 본문 사이, 문단 구분이 필요한 곳에는 \\n\\n (이중 줄바꿈)을, 단순 줄바꿈이 필요한 곳에는 \\n을 사용하세요.
                - 페르소나의 말투(${data.writingStyle === 'conversational' ? '구어체' : '문어체(반말 독백)'}, 이모지 사용 등)를 반영하되, 이모지는 가독성을 해치지 않도록 적절히 절제하여 사용하세요 (문단당 1~2개 수준). ${data.mood === 'happy' ? '이모지를 조금 더 섞어 밝은 분위기를 내주되 남발하지 마세요.' : ''}
                - 핵심 키워드는 제목에만 필수적으로 포함시키고, 본문에서는 강제로 반복하지 말고 문맥에 따라 자연스럽게 녹여내세요.
                - 문장은 호흡이 짧고 읽기 편하게 작성하세요.
@@ -176,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
             {
                 "titles": ["내용에 기반한 제목1", "내용에 기반한 제목2", "내용에 기반한 제목3"],
-                "body": "<h3>소제목1</h3>\\n참고 자료의 핵심 내용...\\n\\n<h3>소제목2</h3>\\n계속 작성...",
+                "body": "소제목1\\n\\n참고 자료의 핵심 내용...\\n\\n소제목2\\n\\n계속 작성...",
                 "verification": [
                     { "fact": "언급된 주요 사실이나 수치", "source": "참고자료 1 (제목/URL)", "reason": "해당 자료의 어떤 부분에서 확인되었는지 간단히 설명" }
                 ]
@@ -264,20 +263,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (data.body) {
-            // Convert newlines to proper HTML breaks before sanitizing
+            // Convert newlines to HTML breaks for display
             let processedBody = data.body
                 // Convert double newlines to paragraph breaks
                 .replace(/\n\n+/g, '<br><br>')
                 // Convert single newlines to breaks
                 .replace(/\n/g, '<br>');
 
-            // Use DOMPurify to sanitize HTML content
-            const cleanHtml = DOMPurify.sanitize(processedBody, {
-                ALLOWED_TAGS: ['h3', 'b', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li'],
-                ALLOWED_ATTR: []
-            });
-            contentBody.innerHTML = cleanHtml;
-            contentBody.dataset.fullText = contentBody.innerText.trim();
+            // Escape HTML to prevent XSS (since we're using plain text)
+            const escapedBody = escapeHtml(processedBody);
+
+            // Replace escaped <br> tags back to actual <br> tags
+            const displayBody = escapedBody.replace(/&lt;br&gt;/g, '<br>');
+
+            contentBody.innerHTML = displayBody;
+            contentBody.dataset.fullText = data.body;
         }
 
         // --- Cross-Verification Rendering ---
@@ -367,11 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 기존 블로그 글을 사용자의 요청에 맞춰 수정하세요.
                 수정 시에도 반드시 **제공된 참고 자료 원문**의 내용만 활용하세요.
                 절대 새로운 사실을 지어내거나 외부 지식을 섞지 마세요. 오직 팩트에 기반해야 합니다.
-                반드시 소제목(<h3>태그)을 사용하여 문단을 구성하고 가독성을 좋게 만드세요.
-                강조는 <b>태그를 사용하세요.
-                **줄바꿈 처리**: 문단 구분이 필요한 곳에는 \\n\\n (이중 줄바꿈)을, 단순 줄바꿈이 필요한 곳에는 \\n을 사용하세요.
+                반드시 소제목을 작성하여 문단을 구성하고 가독성을 좋게 만드세요.
+                **중요: HTML 태그(<h3>, <b> 등)나 마크다운 기호(**, ##, ### 등)를 절대 사용하지 마세요. 모든 내용은 순수 텍스트로만 작성해야 합니다.**
+                **줄바꿈 처리**: 소제목과 본문 사이, 문단 구분이 필요한 곳에는 \\n\\n (이중 줄바꿈)을, 단순 줄바꿈이 필요한 곳에는 \\n을 사용하세요.
                 이모지는 문단당 1~2개 정도로 절제하여 사용하세요.
-                절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요.
                 **어체 유지**: 사용자가 선택한 어체(${formData.writingStyle === 'conversational' ? '구어체' : '문어체(반말/독백)'})를 일관되게 유지하세요.
                 **독자 호칭 금지**: 도입글과 마무리글을 포함한 본문 전체에서 "여러분"이라는 호칭을 절대 사용하지 마세요. 독자에게 직접적으로 질문하거나 요청하는 표현도 사용하지 마세요. 페르소나의 개인적인 경험이나 생각을 서술하는 방식으로 작성하세요.
 
@@ -384,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 [응답 포맷 (JSON)]
                 **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
                 {
-                    "body": "수정된 전체 본문 (<h3>, <b> 태그 포함, \\n으로 줄바꿈 처리)",
+                    "body": "수정된 전체 본문 (순수 텍스트만, \\n\\n으로 줄바꿈 처리)",
                     "verification": [
                         { "fact": "수정/추가된 주요 사실", "source": "참고자료 1 (제목/URL)", "reason": "근거 설명" }
                     ]
