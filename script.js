@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const systemUpdateElement = document.querySelector('.system-update-notice span');
         if (systemUpdateElement) {
-            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - JSON 파싱 에러 수정 (이스케이프 처리 강화)`;
+            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - JSON 파싱 안정성 강화 및 에러 로깅 개선`;
         }
     }
 
@@ -172,12 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
                - **독자 호칭 금지**: 도입글과 마무리글을 포함한 본문 전체에서 "여러분"이라는 호칭을 절대 사용하지 마세요. 독자에게 직접적으로 질문하거나 요청하는 표현도 사용하지 마세요. 페르소나의 개인적인 경험이나 생각을 서술하는 방식으로 작성하세요.
 
             [응답 포맷 (JSON)]
-            **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
-            **JSON 형식 주의사항**:
-            - body 필드의 모든 줄바꿈은 반드시 \\n (백슬래시 n) 형태로 이스케이프해야 합니다
-            - 실제 줄바꿈을 사용하지 말고 문자열 내에서 \\n을 사용하세요
-            - 따옴표(")가 내용에 포함되면 반드시 \\" 형태로 이스케이프하세요
-            - body는 한 줄의 긴 문자열이어야 하며, 실제 줄바꿈이 포함되어서는 안 됩니다
+            - 반드시 유효한 JSON 형식으로 응답하세요.
+            - **주의**: 문자열 내에 따옴표(")가 들어갈 경우 반드시 \\"로 이스케이프하거나 홀따옴표(')를 사용하세요.
+            - **줄바꿈**: JSON 문자열 내의 줄바꿈은 반드시 \\n으로 표현해야 하며, 실제 JSON 파일 구조상의 줄바꿈과 혼동되지 않게 하세요.
+            - 마크다운 코드블록(\`\`\`json)은 생략하고 순수 JSON만 반환하세요.
 
             {
                 "titles": ["내용에 기반한 제목1", "내용에 기반한 제목2", "내용에 기반한 제목3"],
@@ -227,6 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (data.hint) {
                     errorMsg += `\n힌트: ${data.hint}`;
+                }
+                if (data.context) {
+                    console.error('Failure Context:', data.context);
                 }
                 if (data.preview) {
                     console.error('AI Response Preview:', data.preview);
@@ -387,12 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${currentBody}
 
                 [응답 포맷 (JSON)]
-                **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
-                **JSON 형식 주의사항**:
-                - body 필드의 모든 줄바꿈은 반드시 \\n (백슬래시 n) 형태로 이스케이프해야 합니다
-                - 실제 줄바꿈을 사용하지 말고 문자열 내에서 \\n을 사용하세요
-                - 따옴표(")가 내용에 포함되면 반드시 \\" 형태로 이스케이프하세요
-                - body는 한 줄의 긴 문자열이어야 하며, 실제 줄바꿈이 포함되어서는 안 됩니다
+                - 반드시 유효한 JSON 형식으로 응답하세요.
+                - **주의**: 문자열 내에 따옴표(")가 들어갈 경우 반드시 \\"로 이스케이프하거나 홀따옴표(')를 사용하세요.
+                - **줄바꿈**: JSON 문자열 내의 줄바꿈은 반드시 \\n으로 표현해야 하며, 실제 JSON 파일 구조상의 줄바꿈과 혼동되지 않게 하세요.
+                - 마크다운 코드블록을 생략하고 순수 JSON만 반환하세요.
 
                 {
                     "body": "수정된 전체 본문 (순수 텍스트만, \\n\\n으로 줄바꿈 처리)",

@@ -64,8 +64,8 @@ export default async function handler(req, res) {
                 return `[참고 자료 ${index + 1} 원문]\\n출처: ${url}\\n제목: ${title}\\n내용: ${cleanText}`;
             } catch (e) {
                 const errorType = e.name === 'TimeoutError' ? '타임아웃' :
-                                  e.name === 'TypeError' ? '네트워크 오류' :
-                                  '읽기 실패';
+                    e.name === 'TypeError' ? '네트워크 오류' :
+                        '읽기 실패';
                 console.error(`Failed to fetch ${url}:`, e.message);
                 return `[참고 자료 ${index + 1} (${url})]: ${errorType} (${e.message})`;
             }
@@ -153,23 +153,44 @@ export default async function handler(req, res) {
         // More robust cleaning of JSON response
         let cleanContent = content.trim();
 
-        // Remove markdown code blocks if present
+        // 1. Remove markdown code blocks if present
         cleanContent = cleanContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '');
         cleanContent = cleanContent.replace(/```\s*$/, '').trim();
+
+        // 2. If it still doesn't look like valid JSON start/end, try to extract the first { and last }
+        if (!cleanContent.startsWith('{')) {
+            const firstBrace = cleanContent.indexOf('{');
+            const lastBrace = cleanContent.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+            }
+        }
 
         let jsonResult;
         try {
             jsonResult = JSON.parse(cleanContent);
         } catch (parseError) {
             console.error('JSON parsing failed. Error:', parseError.message);
-            console.error('Response preview (first 500 chars):', cleanContent.substring(0, 500));
-            console.error('Response preview (last 200 chars):', cleanContent.substring(Math.max(0, cleanContent.length - 200)));
+
+            // Calculate position details for better debugging
+            const errorPos = parseError.message.match(/at position (\d+)/);
+            const pos = errorPos ? parseInt(errorPos[1]) : 0;
+            const contextStart = Math.max(0, pos - 50);
+            const contextEnd = Math.min(cleanContent.length, pos + 50);
+            const context = cleanContent.substring(contextStart, contextEnd);
+            const pointer = ' '.repeat(Math.min(pos - contextStart, 50)) + '^';
+
+            console.error('Context near error:');
+            console.error(context);
+            console.error(pointer);
 
             return res.status(500).json({
                 error: 'Failed to parse AI response as JSON',
                 details: parseError.message,
-                preview: cleanContent.substring(0, 300) + '...',
-                hint: 'AI가 JSON 형식으로 응답하지 않았습니다. 프롬프트를 확인해주세요.'
+                pos: pos,
+                context: context,
+                preview: cleanContent.substring(0, 500) + (cleanContent.length > 500 ? '...' : ''),
+                hint: 'AI가 JSON 형식을 지키지 못했습니다. 따옴표나 특수문자 이스케이프 문제일 수 있습니다.'
             });
         }
 
