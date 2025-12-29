@@ -1141,24 +1141,43 @@ select {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     align-items: center;
 }
 
-.security-update-notice {
+.update-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+}
+
+.security-update-notice,
+.system-update-notice {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
     border-radius: var(--radius-sm);
-    color: #10b981;
     font-size: 13px;
     font-weight: 500;
 }
 
-.security-update-notice i {
+.security-update-notice {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.system-update-notice {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.security-update-notice i,
+.system-update-notice i {
     font-size: 14px;
 }
 
@@ -1173,13 +1192,15 @@ select {
         padding: 20px;
     }
 
-    .security-update-notice {
+    .security-update-notice,
+    .system-update-notice {
         font-size: 11px;
         padding: 6px 12px;
         text-align: center;
     }
 
-    .security-update-notice span {
+    .security-update-notice span,
+    .system-update-notice span {
         line-height: 1.4;
     }
 
