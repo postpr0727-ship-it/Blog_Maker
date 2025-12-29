@@ -698,6 +698,7 @@ select {
     color: var(--text-main);
     word-break: keep-all;
     overflow-wrap: break-word;
+    white-space: pre-wrap; /* Preserve line breaks and spaces */
 }
 
 .content-preview h1,
@@ -714,10 +715,22 @@ select {
     padding-bottom: 8px;
     display: inline-block;
     /* underlining only the text length */
+    white-space: normal; /* Reset white-space for headings */
+}
+
+.content-preview h3:first-child {
+    margin-top: 0; /* Remove top margin for first heading */
 }
 
 .content-preview p {
     margin-bottom: 16px;
+    white-space: pre-wrap; /* Preserve line breaks in paragraphs */
+}
+
+.content-preview br {
+    display: block;
+    content: "";
+    margin: 8px 0; /* Add spacing around line breaks */
 }
 
 .btn-icon-text {

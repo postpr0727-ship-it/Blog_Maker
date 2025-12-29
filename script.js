@@ -204,8 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (data.body) {
+            // Convert newlines to proper HTML breaks before sanitizing
+            let processedBody = data.body
+                // Convert double newlines to paragraph breaks
+                .replace(/\n\n+/g, '<br><br>')
+                // Convert single newlines to breaks
+                .replace(/\n/g, '<br>');
+
             // Use DOMPurify to sanitize HTML content
-            const cleanHtml = DOMPurify.sanitize(data.body, {
+            const cleanHtml = DOMPurify.sanitize(processedBody, {
                 ALLOWED_TAGS: ['h3', 'b', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li'],
                 ALLOWED_ATTR: []
             });
