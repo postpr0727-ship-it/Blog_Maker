@@ -25,6 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // State
     let isGenerating = false;
 
+    // --- Helper Functions ---
+
+    // Safe HTML escaping to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Copy to clipboard utility
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast();
+        });
+    }
+
     // --- Core Functions ---
 
     // 1. Generate Handler
@@ -171,18 +187,29 @@ document.addEventListener('DOMContentLoaded', () => {
             data.titles.forEach((title) => {
                 const card = document.createElement('div');
                 card.className = 'title-card';
-                card.innerHTML = `
-                    <span class="title-text">${title}</span>
-                    <button class="btn-copy" onclick="window.copyToClipboard('${title.replace(/'/g, "\\'")}')">
-                        <i class="fa-regular fa-copy"></i>
-                    </button>
-                `;
+
+                const titleText = document.createElement('span');
+                titleText.className = 'title-text';
+                titleText.textContent = title; // Safe text content
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn-copy';
+                copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+                copyBtn.addEventListener('click', () => copyToClipboard(title));
+
+                card.appendChild(titleText);
+                card.appendChild(copyBtn);
                 titlesContainer.appendChild(card);
             });
         }
 
         if (data.body) {
-            contentBody.innerHTML = marked.parse(data.body);
+            // Use DOMPurify to sanitize HTML content
+            const cleanHtml = DOMPurify.sanitize(data.body, {
+                ALLOWED_TAGS: ['h3', 'b', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li'],
+                ALLOWED_ATTR: []
+            });
+            contentBody.innerHTML = cleanHtml;
             contentBody.dataset.fullText = contentBody.innerText.trim();
         }
 
@@ -196,11 +223,22 @@ document.addEventListener('DOMContentLoaded', () => {
             data.verification.forEach(item => {
                 const vItem = document.createElement('div');
                 vItem.className = 'verification-item';
-                vItem.innerHTML = `
-                    <div class="v-fact"><strong>사실 확인:</strong> ${item.fact}</div>
-                    <div class="v-source"><strong>출처:</strong> ${item.source}</div>
-                    <div class="v-reason"><strong>근거:</strong> ${item.reason}</div>
-                `;
+
+                const vFact = document.createElement('div');
+                vFact.className = 'v-fact';
+                vFact.innerHTML = '<strong>사실 확인:</strong> ' + escapeHtml(item.fact);
+
+                const vSource = document.createElement('div');
+                vSource.className = 'v-source';
+                vSource.innerHTML = '<strong>출처:</strong> ' + escapeHtml(item.source);
+
+                const vReason = document.createElement('div');
+                vReason.className = 'v-reason';
+                vReason.innerHTML = '<strong>근거:</strong> ' + escapeHtml(item.reason);
+
+                vItem.appendChild(vFact);
+                vItem.appendChild(vSource);
+                vItem.appendChild(vReason);
                 vList.appendChild(vItem);
             });
         } else {
@@ -231,15 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 7. Utilities & Refine
-    window.copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast();
-        });
-    };
-
     copyBodyBtn.addEventListener('click', () => {
         const textToCopy = contentBody.dataset.fullText || contentBody.innerText;
-        window.copyToClipboard(textToCopy);
+        copyToClipboard(textToCopy);
     });
 
     function showToast() {
@@ -263,16 +295,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const currentBody = contentBody.dataset.fullText;
+            const formData = getFormData(); // Get current form data including links
             const refinePrompt = `
                 기존 블로그 글을 사용자의 요청에 맞춰 수정하세요.
-                수정 시에도 반드시 **제공된 참고 자료 원문**의 내용만 활용하세요. 
+                수정 시에도 반드시 **제공된 참고 자료 원문**의 내용만 활용하세요.
                 절대 새로운 사실을 지어내거나 외부 지식을 섞지 마세요. 오직 팩트에 기반해야 합니다.
                 반드시 소제목(<h3>태그)을 사용하여 문단을 구성하고 가독성을 좋게 만드세요.
                 강조는 <b>태그를 사용하세요.
                 이모지는 문단당 1~2개 정도로 절제하여 사용하세요.
                 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요.
-                **어체 유지**: 사용자가 선택한 어체(${document.querySelector('input[name="writing-style"]:checked').value === 'conversational' ? '구어체' : '문어체(반말/독백)'})를 일관되게 유지하세요.
-                
+                **어체 유지**: 사용자가 선택한 어체(${formData.writingStyle === 'conversational' ? '구어체' : '문어체(반말/독백)'})를 일관되게 유지하세요.
+
                 [사용자 요청]
                 ${prompt}
 
@@ -291,7 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 수정된 글에서도 핵심 정보의 출처를 verification 리스트에 명시하세요.
             `;
 
-            const data = await executePrompt(refinePrompt);
+            // Pass links to refine as well
+            const data = await executePrompt(refinePrompt, null, formData.links);
             if (data.body) {
                 renderResults(data); // Using renderResults instead of updateRefineResult to reuse verification rendering
                 document.getElementById('refine-prompt').value = '';
