@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ DOM Content Loaded');
 
+    // Update system update timestamp
+    updateSystemTimestamp();
+
     // Check if DOMPurify is loaded
     if (typeof DOMPurify === 'undefined') {
         console.error('❌ DOMPurify is not loaded!');
@@ -43,6 +46,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let isGenerating = false;
 
     // --- Helper Functions ---
+
+    // Update system timestamp in footer
+    function updateSystemTimestamp() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+
+        const timestamp = `${year}년 ${month}월 ${day}일 ${hours}:${minutes} KST`;
+
+        const systemUpdateElement = document.querySelector('.system-update-notice span');
+        if (systemUpdateElement) {
+            systemUpdateElement.innerHTML = `시스템 업데이트: ${timestamp} - 페르소나 작성 규칙 개선 (독자 호칭 제거)`;
+        }
+    }
 
     // Safe HTML escaping to prevent XSS
     function escapeHtml(text) {
@@ -150,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                - 문장은 호흡이 짧고 읽기 편하게 작성하세요.
                - **어휘 다양성**: 동일하거나 유사한 어휘 및 종결 어미(예: '~가 기대된다', '~인 것 같다' 등)를 반복적으로 사용하지 마세요. 다채로운 표현을 사용하여 글의 완성도를 높이고 자연스럽게 작성하세요.
                - **어체 유지**: 선택된 어체(${data.writingStyle === 'conversational' ? '구어체' : '문어체(반말 독백)'})를 글 전체에서 일관되게 유지하세요. 문어체의 경우 반드시 반말(독백)을 사용하고 존댓말을 절대 사용하지 마세요.
+               - **독자 호칭 금지**: 도입글과 마무리글을 포함한 본문 전체에서 "여러분"이라는 호칭을 절대 사용하지 마세요. 독자에게 직접적으로 질문하거나 요청하는 표현도 사용하지 마세요. 페르소나의 개인적인 경험이나 생각을 서술하는 방식으로 작성하세요.
 
             [응답 포맷 (JSON)]
             **중요**: 반드시 유효한 JSON 형식으로 응답하세요. 마크다운 코드블록을 사용하지 말고 순수 JSON만 반환하세요.
@@ -352,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 이모지는 문단당 1~2개 정도로 절제하여 사용하세요.
                 절대 **, ##, ### 와 같은 마크다운 기호를 사용하지 마세요.
                 **어체 유지**: 사용자가 선택한 어체(${formData.writingStyle === 'conversational' ? '구어체' : '문어체(반말/독백)'})를 일관되게 유지하세요.
+                **독자 호칭 금지**: 도입글과 마무리글을 포함한 본문 전체에서 "여러분"이라는 호칭을 절대 사용하지 마세요. 독자에게 직접적으로 질문하거나 요청하는 표현도 사용하지 마세요. 페르소나의 개인적인 경험이나 생각을 서술하는 방식으로 작성하세요.
 
                 [사용자 요청]
                 ${prompt}
