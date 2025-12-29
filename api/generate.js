@@ -149,16 +149,27 @@ export default async function handler(req, res) {
         }
 
         const content = candidate.content.parts[0].text;
-        const cleanContent = content.replace(/```json\n?/, '').replace(/```$/, '').trim();
+
+        // More robust cleaning of JSON response
+        let cleanContent = content.trim();
+
+        // Remove markdown code blocks if present
+        cleanContent = cleanContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '');
+        cleanContent = cleanContent.replace(/```\s*$/, '').trim();
 
         let jsonResult;
         try {
             jsonResult = JSON.parse(cleanContent);
         } catch (parseError) {
-            console.error('JSON parsing failed:', cleanContent.substring(0, 200));
+            console.error('JSON parsing failed. Error:', parseError.message);
+            console.error('Response preview (first 500 chars):', cleanContent.substring(0, 500));
+            console.error('Response preview (last 200 chars):', cleanContent.substring(Math.max(0, cleanContent.length - 200)));
+
             return res.status(500).json({
                 error: 'Failed to parse AI response as JSON',
-                details: parseError.message
+                details: parseError.message,
+                preview: cleanContent.substring(0, 300) + '...',
+                hint: 'AI가 JSON 형식으로 응답하지 않았습니다. 프롬프트를 확인해주세요.'
             });
         }
 
