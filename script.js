@@ -112,8 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
             [응답 포맷 (JSON)]
             {
                 "titles": ["내용에 기반한 제목1", "내용에 기반한 제목2", "내용에 기반한 제목3"],
-                "body": "<h3>소제목1</h3>\\n참고 자료의 핵심 내용...\\n\\n<h3>소제목2</h3>..."
+                "body": "<h3>소제목1</h3>\\n참고 자료의 핵심 내용...\\n\\n<h3>소제목2</h3>...",
+                "verification": [
+                    { "fact": "언급된 주요 사실이나 수치", "source": "참고자료 1 (제목/URL)", "reason": "해당 자료의 어떤 부분에서 확인되었는지 간단히 설명" }
+                ]
             }
+
+            [교차검증(Cross-Verification) 지침]
+            - 생성된 본문의 핵심적인 정보(수치, 사실, 주요 내용)들이 어느 참고 자료에서 왔는지 위의 verification 리스트에 최소 3개 이상 작성하세요.
+            - 자료의 출처를 명확히 밝혀 사용자가 신뢰할 수 있도록 하세요.
         `;
     }
 
@@ -159,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Render Results
     function renderResults(data) {
-        titlesContainer.innerHTML = '';
         if (data.titles && Array.isArray(data.titles)) {
+            titlesContainer.innerHTML = '';
             data.titles.forEach((title) => {
                 const card = document.createElement('div');
                 card.className = 'title-card';
@@ -177,6 +184,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.body) {
             contentBody.innerHTML = marked.parse(data.body);
             contentBody.dataset.fullText = contentBody.innerText.trim();
+        }
+
+        // --- Cross-Verification Rendering ---
+        const vReport = document.getElementById('verification-report');
+        const vList = document.getElementById('verification-list');
+        vList.innerHTML = '';
+
+        if (data.verification && Array.isArray(data.verification) && data.verification.length > 0) {
+            vReport.classList.remove('hidden');
+            data.verification.forEach(item => {
+                const vItem = document.createElement('div');
+                vItem.className = 'verification-item';
+                vItem.innerHTML = `
+                    <div class="v-fact"><strong>사실 확인:</strong> ${item.fact}</div>
+                    <div class="v-source"><strong>출처:</strong> ${item.source}</div>
+                    <div class="v-reason"><strong>근거:</strong> ${item.reason}</div>
+                `;
+                vList.appendChild(vItem);
+            });
+        } else {
+            vReport.classList.add('hidden');
         }
     }
 
@@ -253,13 +281,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 [응답 포맷 (JSON)]
                 {
-                    "body": "수정된 전체 본문 (<h3>, <b> 태그 포함)"
+                    "body": "수정된 전체 본문 (<h3>, <b> 태그 포함)",
+                    "verification": [
+                        { "fact": "수정/추가된 주요 사실", "source": "참고자료 1 (제목/URL)", "reason": "근거 설명" }
+                    ]
                 }
+
+                [교차검증 지침]
+                수정된 글에서도 핵심 정보의 출처를 verification 리스트에 명시하세요.
             `;
 
             const data = await executePrompt(refinePrompt);
             if (data.body) {
-                updateRefineResult(data.body);
+                renderResults(data); // Using renderResults instead of updateRefineResult to reuse verification rendering
+                document.getElementById('refine-prompt').value = '';
+                refineArea.classList.add('hidden');
             }
             if (data.usedModel) {
                 document.getElementById('used-model-name').innerText = data.usedModel;
@@ -273,11 +309,4 @@ document.addEventListener('DOMContentLoaded', () => {
             refineBtn.disabled = false;
         }
     });
-
-    function updateRefineResult(newBody) {
-        contentBody.innerHTML = marked.parse(newBody);
-        contentBody.dataset.fullText = contentBody.innerText.trim();
-        document.getElementById('refine-prompt').value = '';
-        refineArea.classList.add('hidden');
-    }
 });
